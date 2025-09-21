@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Play, Pause, RotateCcw, ChevronDown } from 'lucide-react';
+import PropTypes from 'prop-types';
+import { ChevronDown, Pause, Play, RotateCcw } from 'lucide-react';
+import ErrorBoundary from './ErrorBoundary';
 
 // Utility functions
 const generateRandomArray = (length) => {
@@ -398,6 +400,14 @@ const AlgorithmDescription = ({ algorithm }) => {
   );
 };
 
+// Add PropTypes for AlgorithmDescription component
+AlgorithmDescription.propTypes = {
+  algorithm: PropTypes.string.isRequired
+};
+
+// Memoize AlgorithmDescription
+const MemoizedAlgorithmDescription = React.memo(AlgorithmDescription);
+
 const AnimatedHeader = () => {
   const [bars, setBars] = useState([]);
   const [sorting, setSorting] = useState(false);
@@ -466,6 +476,8 @@ const AnimatedHeader = () => {
 };
 
 const App = () => {
+  // Add loading state
+  const [isLoading, setIsLoading] = useState(false);
   const [array, setArray] = useState([]);
   const [sorting, setSorting] = useState(false);
   const [algorithm, setAlgorithm] = useState('bubble');
@@ -474,6 +486,7 @@ const App = () => {
   const shouldContinue = useRef(true);
   const visualizerRef = useRef(null);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     resetArray();
   }, [arraySize]);
@@ -484,6 +497,7 @@ const App = () => {
     shouldContinue.current = true;
   }, [arraySize]);
 
+  // Memoize startSorting
   const startSorting = useCallback(async () => {
     if (sorting) {
       shouldContinue.current = false;
@@ -491,51 +505,57 @@ const App = () => {
       return;
     }
 
-    setSorting(true);
-    shouldContinue.current = true;
-
-    switch (algorithm) {
-      case 'bubble':
-        await bubbleSort([...array], setArray, 101 - speed, shouldContinue);
-        break;
-      case 'quick':
-        await quickSort([...array], 0, array.length - 1, setArray, 101 - speed, shouldContinue);
-        break;
-      case 'merge':
-        await mergeSort([...array], setArray, 101 - speed, shouldContinue);
-        break;
-      case 'selection':
-        await selectionSort([...array], setArray, 101 - speed, shouldContinue);
-        break;
-      case 'insertion':
-        await insertionSort([...array], setArray, 101 - speed, shouldContinue);
-        break;
-      case 'radix':
-        await radixSort([...array], setArray, 101 - speed, shouldContinue);
-        break;
-      case 'shell':
-        await shellSort([...array], setArray, 101 - speed, shouldContinue);
-        break;
-      case 'heap':
-        await heapSort([...array], setArray, 101 - speed, shouldContinue);
-        break;
-      case 'comb':
-        await combSort([...array], setArray, 101 - speed, shouldContinue);
-        break;
-      case 'randomQuick':
-        await randomizedQuickSort([...array], 0, array.length - 1, setArray, 101 - speed, shouldContinue);
-        break;
-      case 'bucket':
-        await bucketSort([...array], setArray, 101 - speed, shouldContinue);
-        break;
-      case 'cube':
-        await cubeSort([...array], setArray, 101 - speed, shouldContinue);
-        break;
-      default:
-        break;
+    try {
+      setIsLoading(true);
+      setSorting(true);
+      shouldContinue.current = true;
+      
+      switch (algorithm) {
+        case 'bubble':
+          await bubbleSort([...array], setArray, Math.max(1, 150 - speed * 1.4), shouldContinue);
+          break;
+        case 'quick':
+          await quickSort([...array], 0, array.length - 1, setArray, Math.max(1, 150 - speed * 1.4), shouldContinue);
+          break;
+        case 'merge':
+          await mergeSort([...array], setArray, Math.max(1, 150 - speed * 1.4), shouldContinue);
+          break;
+        case 'selection':
+          await selectionSort([...array], setArray, Math.max(1, 150 - speed * 1.4), shouldContinue);
+          break;
+        case 'insertion':
+          await insertionSort([...array], setArray, Math.max(1, 150 - speed * 1.4), shouldContinue);
+          break;
+        case 'radix':
+          await radixSort([...array], setArray, Math.max(1, 150 - speed * 1.4), shouldContinue);
+          break;
+        case 'shell':
+          await shellSort([...array], setArray, Math.max(1, 150 - speed * 1.4), shouldContinue);
+          break;
+        case 'heap':
+          await heapSort([...array], setArray, Math.max(1, 150 - speed * 1.4), shouldContinue);
+          break;
+        case 'comb':
+          await combSort([...array], setArray, Math.max(1, 150 - speed * 1.4), shouldContinue);
+          break;
+        case 'randomQuick':
+          await randomizedQuickSort([...array], 0, array.length - 1, setArray, Math.max(1, 150 - speed * 1.4), shouldContinue);
+          break;
+        case 'bucket':
+          await bucketSort([...array], setArray, Math.max(1, 150 - speed * 1.4), shouldContinue);
+          break;
+        case 'cube':
+          await cubeSort([...array], setArray, Math.max(1, 150 - speed * 1.4), shouldContinue);
+          break;
+        default:
+          break;
+      }
+    } catch (error) {
+      console.error('Sorting error:', error);
+    } finally {
+      setIsLoading(false);
+      setSorting(false);
     }
-
-    setSorting(false);
   }, [algorithm, array, speed, sorting]);
 
   const scrollToVisualizer = () => {
@@ -545,7 +565,7 @@ const App = () => {
   return (
     <div className="min-h-screen bg-blue-100">
       <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center">
-        <h1 className="text-5xl font-bold mb-8 text-blue-800">Sorting Visualizer</h1>
+        <h1 className="text-5xl font-bold mb-8 text-blue-800">Algorithm Sorting Visualizer</h1>
         <AnimatedHeader />
         <p className="text-xl mb-8 max-w-3xl">
           Welcome! This tool helps you understand how different sorting algorithms work by visualizing the process. Watch as the bars rearrange themselves according to the chosen algorithm. Adjust the array size and sorting speed to see how these factors affect the sorting process.
@@ -559,15 +579,13 @@ const App = () => {
       </div>
       <div ref={visualizerRef} className="min-h-screen flex flex-col items-center justify-center p-4">
         <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-3xl">
-          <div className="flex justify-center items-end h-64 mb-8">
+          <div className="flex-1 flex items-end gap-1 overflow-hidden mb-8" style={{ height: "400px" }}>
             {array.map((value, index) => (
               <div
                 key={index}
+                className="w-full bg-blue-500 transition-all duration-150"
                 style={{
-                  height: `${value * 2}px`,
-                  width: `${Math.max(2, 600 / array.length - 1)}px`,
-                  backgroundColor: '#4299e1',
-                  margin: '0 1px',
+                  height: `${value}%`,
                 }}
               ></div>
             ))}
@@ -639,4 +657,11 @@ const App = () => {
   );
 };
 
-export default App;
+// Wrap the export with ErrorBoundary
+export default function AppWithErrorBoundary() {
+  return (
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  );
+}
